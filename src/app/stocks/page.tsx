@@ -18,8 +18,6 @@ export default function StocksPage() {
       .then(setData);
   }, []);
 
-  console.log(data);
-
   return (
     <main className="p-6">
       <h1 className="text-2xl font-bold mb-4">今日股市資訊</h1>

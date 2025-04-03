@@ -8,6 +8,13 @@
       "when": 1743683240444,
       "tag": "0000_lovely_luckman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1743687965281,
+      "tag": "0001_spotty_frank_castle",
+      "breakpoints": true
     }
   ]
 }

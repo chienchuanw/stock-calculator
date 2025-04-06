@@ -113,14 +113,19 @@ export default function StockDetailPage() {
 
   // 切換排序方向
   const toggleSortDirection = () => {
+    // 獲取新的排序方向
     const newDirection = sortDirection === 'desc' ? 'asc' : 'desc';
-    setSortDirection(newDirection);
     
-    // 直接在客戶端重新排序，而不需等待API
+    // 使用新的排序方向進行排序
     if (dividends.length > 0) {
-      const sortedData = sortDividends([...dividends]);
+      const sortedData = [...dividends].sort((a, b) => 
+        newDirection === 'desc' ? b.year - a.year : a.year - b.year
+      );
       setDividends(sortedData);
     }
+    
+    // 更新狀態
+    setSortDirection(newDirection);
   };
 
   const handleBack = () => {

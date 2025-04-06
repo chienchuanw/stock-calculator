@@ -272,7 +272,11 @@ export default function StocksPage() {
                         <span className="font-medium">{stock.stockSymbol}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm">{stock.stockName}</td>
+                    <td className="py-3 px-4 text-sm">
+                      <a href={`/stocks/${stock.stockSymbol}`} className="text-blue-500 hover:underline">
+                        {stock.stockName}
+                      </a>
+                    </td>
                     <td className="py-3 px-4 text-sm">{stock.market}</td>
                     <td className="py-3 px-4 text-sm">
                       {stock.tradeVolume.toLocaleString()} 股

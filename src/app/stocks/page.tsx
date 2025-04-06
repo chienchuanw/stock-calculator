@@ -235,11 +235,11 @@ export default function StocksPage() {
           ) : (
             <table className="w-full table-fixed">
               <colgroup>
-                <col style={{ width: "15%" }} /> {/* 股票代號 */}
-                <col style={{ width: "40%" }} /> {/* 股票名稱 */}
-                <col style={{ width: "15%" }} /> {/* 成交股市 */}
-                <col style={{ width: "20%" }} /> {/* 成交股數 */}
-                <col style={{ width: "10%" }} /> {/* 操作 */}
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "40%" }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "20%" }} />
+                <col style={{ width: "10%" }} />
               </colgroup>
               <thead>
                 <tr className="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">

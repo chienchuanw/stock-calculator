@@ -11,11 +11,13 @@ interface Stock {
 
 export default function StocksPage() {
   const [allData, setAllData] = useState<Stock[]>([]);
+  const [filteredData, setFilteredData] = useState<Stock[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [inputPage, setInputPage] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // 處理數據載入
   useEffect(() => {
@@ -27,6 +29,7 @@ export default function StocksPage() {
         .then((res) => res.json())
         .then((data) => {
           setAllData(data);
+          setFilteredData(data);
           setTotalPages(Math.ceil(data.length / itemsPerPage));
         })
         .catch((error) => {
@@ -42,15 +45,31 @@ export default function StocksPage() {
 
   // 當每頁顯示項目數量變更時重新計算總頁數
   useEffect(() => {
-    setTotalPages(Math.ceil(allData.length / itemsPerPage));
+    setTotalPages(Math.ceil(filteredData.length / itemsPerPage));
     // 如果當前頁超過新的總頁數，則返回最後一頁
-    if (currentPage > Math.ceil(allData.length / itemsPerPage)) {
-      setCurrentPage(Math.ceil(allData.length / itemsPerPage) || 1);
+    if (currentPage > Math.ceil(filteredData.length / itemsPerPage)) {
+      setCurrentPage(Math.ceil(filteredData.length / itemsPerPage) || 1);
     }
-  }, [allData, itemsPerPage]);
+  }, [filteredData, itemsPerPage]);
+  
+  // 處理搜索邏輯
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setFilteredData(allData);
+    } else {
+      const term = searchTerm.toLowerCase().trim();
+      const filtered = allData.filter(
+        (stock) =>
+          stock.stockSymbol.toLowerCase().includes(term) ||
+          stock.stockName.toLowerCase().includes(term)
+      );
+      setFilteredData(filtered);
+      setCurrentPage(1); // 重置到第一頁
+    }
+  }, [searchTerm, allData]);
 
   // 計算當前頁面顯示的數據
-  const currentData = allData.slice(
+  const currentData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -122,10 +141,58 @@ export default function StocksPage() {
   return (
     <div className="bg-white min-h-screen">
       <div className="px-8 py-6">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold text-gray-800">股票資訊</h1>
 
-          <div className="flex gap-4">
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            {/* 搜索框 */}
+            <div className="relative w-full md:w-64 mb-4 md:mb-0">
+              <input
+                type="text"
+                placeholder="搜尋股票代號或名稱..."
+                className="w-full border border-gray-200 rounded px-3 py-2 pl-9 text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-gray-400"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+              {searchTerm && (
+                <button
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setSearchTerm("")}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">顯示</span>
               <div className="relative">
@@ -359,6 +426,15 @@ export default function StocksPage() {
                       </td>
                     </tr>
                   ))
+                ) : searchTerm ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-4 px-4 text-sm text-center text-gray-500"
+                    >
+                      沒有符合 "{searchTerm}" 的搜尋結果
+                    </td>
+                  </tr>
                 ) : (
                   <tr>
                     <td
@@ -483,9 +559,10 @@ export default function StocksPage() {
         {!loading && (
           <div className="text-sm text-gray-500 mt-4">
             顯示第{" "}
-            {allData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} 至{" "}
-            {Math.min(currentPage * itemsPerPage, allData.length)} 筆資料，共{" "}
-            {allData.length} 筆
+            {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} 至{" "}
+            {Math.min(currentPage * itemsPerPage, filteredData.length)} 筆資料，共{" "}
+            {filteredData.length} 筆
+            {searchTerm && ` (搜尋結果)`}
           </div>
         )}
       </div>

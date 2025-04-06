@@ -7,7 +7,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { stockSymbol: string } }
 ) {
-  const { stockSymbol } = params;
+  // 在 Next.js App Router 中，路由參數需要使用 Promise 解析
+  const { stockSymbol } = await Promise.resolve(params);
 
   if (!stockSymbol) {
     return new Response(JSON.stringify({ message: "股票代號為必填" }), {

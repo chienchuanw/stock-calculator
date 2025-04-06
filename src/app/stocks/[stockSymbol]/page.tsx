@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
+import {
   faChevronLeft,
   faChevronUp,
-  faChevronDown
+  faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 
 interface Stock {
@@ -38,7 +38,7 @@ export default function StockDetailPage() {
   const [dividendsLoading, setDividendsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [dividendsError, setDividendsError] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // 默認降序（新到舊）
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc"); // 默認降序（新到舊）
 
   const stockSymbol = params.stockSymbol as string;
 
@@ -106,24 +106,24 @@ export default function StockDetailPage() {
 
   // 重新排序股利資料
   const sortDividends = (data: Dividend[]) => {
-    return [...data].sort((a, b) => 
-      sortDirection === 'desc' ? b.year - a.year : a.year - b.year
+    return [...data].sort((a, b) =>
+      sortDirection === "desc" ? b.year - a.year : a.year - b.year
     );
   };
 
   // 切換排序方向
   const toggleSortDirection = () => {
     // 獲取新的排序方向
-    const newDirection = sortDirection === 'desc' ? 'asc' : 'desc';
-    
+    const newDirection = sortDirection === "desc" ? "asc" : "desc";
+
     // 使用新的排序方向進行排序
     if (dividends.length > 0) {
-      const sortedData = [...dividends].sort((a, b) => 
-        newDirection === 'desc' ? b.year - a.year : a.year - b.year
+      const sortedData = [...dividends].sort((a, b) =>
+        newDirection === "desc" ? b.year - a.year : a.year - b.year
       );
       setDividends(sortedData);
     }
-    
+
     // 更新狀態
     setSortDirection(newDirection);
   };
@@ -137,7 +137,7 @@ export default function StockDetailPage() {
       <div className="px-8 py-6">
         <button
           onClick={handleBack}
-          className="mb-6 flex items-center text-blue-500 hover:text-blue-600"
+          className="mb-6 flex items-center text-blue-500 hover:text-blue-600 hover:cursor-pointer"
         >
           <FontAwesomeIcon icon={faChevronLeft} className="mr-1" />
           返回股票列表
@@ -187,11 +187,13 @@ export default function StockDetailPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* 股利資訊區塊 */}
             <div className="bg-white shadow-sm rounded-md overflow-hidden border border-gray-100 p-6 mb-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">歷年股利資訊</h2>
-              
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                歷年股利資訊
+              </h2>
+
               {dividendsLoading ? (
                 <div className="flex justify-center items-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
@@ -209,38 +211,72 @@ export default function StockDetailPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-50">
-                        <th 
+                        <th
                           className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                           onClick={toggleSortDirection}
                         >
                           <div className="flex items-center">
                             年度
-                            {sortDirection === 'desc' ? (
-                              <FontAwesomeIcon icon={faChevronUp} className="ml-1" size="sm" />
+                            {sortDirection === "desc" ? (
+                              <FontAwesomeIcon
+                                icon={faChevronUp}
+                                className="ml-1"
+                                size="sm"
+                              />
                             ) : (
-                              <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="sm" />
+                              <FontAwesomeIcon
+                                icon={faChevronDown}
+                                className="ml-1"
+                                size="sm"
+                              />
                             )}
                           </div>
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">除息日</th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">現金股利</th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">股票股利</th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">合計股利</th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">發放日期</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          除息日
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          現金股利
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          股票股利
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          合計股利
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          發放日期
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {dividends.map((dividend) => (
                         <tr key={dividend.id} className="hover:bg-gray-50">
-                          <td className="py-3 px-4 whitespace-nowrap">{dividend.year}</td>
                           <td className="py-3 px-4 whitespace-nowrap">
-                            {dividend.exDividendDate ? new Date(dividend.exDividendDate).toLocaleDateString() : "-"}
+                            {dividend.year}
                           </td>
-                          <td className="py-3 px-4 whitespace-nowrap">{dividend.cashDividend || "-"}</td>
-                          <td className="py-3 px-4 whitespace-nowrap">{dividend.stockDividend || "-"}</td>
-                          <td className="py-3 px-4 whitespace-nowrap font-medium">{dividend.totalDividend || "-"}</td>
                           <td className="py-3 px-4 whitespace-nowrap">
-                            {dividend.issuedDate ? new Date(dividend.issuedDate).toLocaleDateString() : "-"}
+                            {dividend.exDividendDate
+                              ? new Date(
+                                  dividend.exDividendDate
+                                ).toLocaleDateString()
+                              : "-"}
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            {dividend.cashDividend || "-"}
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            {dividend.stockDividend || "-"}
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap font-medium">
+                            {dividend.totalDividend || "-"}
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            {dividend.issuedDate
+                              ? new Date(
+                                  dividend.issuedDate
+                                ).toLocaleDateString()
+                              : "-"}
                           </td>
                         </tr>
                       ))}

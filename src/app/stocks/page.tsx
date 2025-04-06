@@ -15,6 +15,7 @@ export default function StocksPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
+  const [inputPage, setInputPage] = useState<string>("");
 
   // 處理數據載入
   useEffect(() => {
@@ -59,6 +60,29 @@ export default function StocksPage() {
     if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
     window.scrollTo(0, 0); // 回到頁面頂部
+  };
+
+  // 處理頁碼輸入框變更
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 只允許輸入數字
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setInputPage(value);
+  };
+
+  // 處理頁碼跳轉
+  const handlePageJump = () => {
+    const pageNumber = parseInt(inputPage, 10);
+    if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+      handlePageChange(pageNumber);
+      setInputPage(""); // 跳轉後清空輸入框
+    }
+  };
+
+  // 處理鍵盤事件（按下 Enter 鍵時跳轉）
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handlePageJump();
+    }
   };
 
   // 產生頁碼陣列
@@ -352,7 +376,7 @@ export default function StocksPage() {
 
         {/* 分頁 */}
         {!loading && totalPages > 1 && (
-          <div className="flex justify-between items-center mt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
             <button
               className={`flex items-center gap-1 text-sm text-gray-500 px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 ${
                 currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
@@ -376,7 +400,7 @@ export default function StocksPage() {
               上一頁
             </button>
 
-            <div className="flex gap-1">
+            <div className="flex flex-wrap items-center gap-4 justify-center">
               <div className="flex">
                 {getPaginationNumbers().map((page, index) =>
                   typeof page === "number" ? (
@@ -408,6 +432,23 @@ export default function StocksPage() {
                     </button>
                   )
                 )}
+              </div>
+              <div className="flex items-center">
+                <span className="text-sm text-gray-500 mr-2">跳轉至頁碼：</span>
+                <input
+                  type="text"
+                  className="w-16 h-8 text-sm border border-gray-200 rounded px-2"
+                  value={inputPage}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder={String(currentPage)}
+                />
+                <button
+                  onClick={handlePageJump}
+                  className="ml-2 px-3 h-8 text-sm border border-gray-200 rounded hover:bg-gray-50 flex items-center justify-center"
+                >
+                  跳轉
+                </button>
               </div>
             </div>
 

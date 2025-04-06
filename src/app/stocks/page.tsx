@@ -10,8 +10,10 @@ import {
   faBars,
   faDownload,
   faPlus,
-  faEllipsis
+  faEllipsis,
+  faStar
 } from "@fortawesome/free-solid-svg-icons";
+import Link from "next/link";
 
 interface Stock {
   id: string;
@@ -253,7 +255,7 @@ export default function StocksPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white">
       <div className="px-8 py-6 relative">
         {/* 通知元件 */}
         {notification.message && (
@@ -322,6 +324,11 @@ export default function StocksPage() {
               <FontAwesomeIcon icon={faDownload} />
               <span>匯出</span>
             </button>
+
+            <Link href="/watchlist" className="flex items-center gap-2 text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded px-3 py-1">
+              <FontAwesomeIcon icon={faStar} />
+              <span>觀測名單</span>
+            </Link>
 
             <button className="flex items-center gap-2 text-sm text-white bg-blue-500 hover:bg-blue-600 rounded px-3 py-1">
               <FontAwesomeIcon icon={faPlus} />

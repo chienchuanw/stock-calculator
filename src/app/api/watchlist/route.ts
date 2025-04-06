@@ -1,11 +1,11 @@
 import { db } from "@/db";
-import { watchlist } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { watchlist, dailyStocks } from "@/db/schema";
+import { eq, inArray } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const stocks = await db.select().from(watchlist);
-    return Response.json(stocks);
+    const watchlistItems = await db.select().from(watchlist);
+    return Response.json(watchlistItems);
   } catch (error) {
     console.error("獲取觀測名單時發生錯誤:", error);
     return new Response(JSON.stringify({ message: "獲取觀測名單時發生錯誤" }), {

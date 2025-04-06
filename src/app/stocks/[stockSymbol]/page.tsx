@@ -32,6 +32,7 @@ export default function StockDetailPage() {
   const [dividendsLoading, setDividendsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [dividendsError, setDividendsError] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // 默認降序（新到舊）
 
   const stockSymbol = params.stockSymbol as string;
 
@@ -84,7 +85,9 @@ export default function StockDetailPage() {
         return res.json();
       })
       .then((data) => {
-        setDividends(data);
+        // 預設依照年度降序排列
+        const sortedData = sortDividends(data);
+        setDividends(sortedData);
       })
       .catch((err) => {
         console.error("獲取股利資訊時發生錯誤:", err);
@@ -94,6 +97,25 @@ export default function StockDetailPage() {
         setDividendsLoading(false);
       });
   }, [stockSymbol]);
+
+  // 重新排序股利資料
+  const sortDividends = (data: Dividend[]) => {
+    return [...data].sort((a, b) => 
+      sortDirection === 'desc' ? b.year - a.year : a.year - b.year
+    );
+  };
+
+  // 切換排序方向
+  const toggleSortDirection = () => {
+    const newDirection = sortDirection === 'desc' ? 'asc' : 'desc';
+    setSortDirection(newDirection);
+    
+    // 直接在客戶端重新排序，而不需等待API
+    if (dividends.length > 0) {
+      const sortedData = sortDividends([...dividends]);
+      setDividends(sortedData);
+    }
+  };
 
   const handleBack = () => {
     router.push("/stocks");
@@ -189,7 +211,23 @@ export default function StockDetailPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-50">
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">年度</th>
+                        <th 
+                          className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={toggleSortDirection}
+                        >
+                          <div className="flex items-center">
+                            年度
+                            {sortDirection === 'desc' ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                                <path d="m18 15-6-6-6 6"/>
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                                <path d="m6 9 6 6 6-6"/>
+                              </svg>
+                            )}
+                          </div>
+                        </th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">除息日</th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">現金股利</th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">股票股利</th>

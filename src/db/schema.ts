@@ -4,8 +4,11 @@ export const dividends = pgTable("dividends", {
   id: serial("id").primaryKey(),
   stockSymbol: varchar("stock_symbol", { length: 10 }).notNull(),
   year: integer("year").notNull(),
-  dividendPerShare: integer("dividend_per_share").notNull(),
-  payoutDate: date("payout_date"),
+  exDividendDate: date("ex_dividend_date"),
+  cashDividend: varchar("cash_dividend", { length: 20 }),
+  stockDividend: varchar("stock_dividend", { length: 20 }),
+  totalDividend: varchar("total_dividend", { length: 20 }),
+  issuedDate: date("issued_date"),
 });
 
 export const dailyStocks = pgTable("daily_stocks", {

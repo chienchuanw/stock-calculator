@@ -12,12 +12,26 @@ interface Stock {
   tradeDate: string;
 }
 
+interface Dividend {
+  id: string;
+  stockSymbol: string;
+  year: number;
+  exDividendDate: string | null;
+  cashDividend: string | null;
+  stockDividend: string | null;
+  totalDividend: string | null;
+  issuedDate: string | null;
+}
+
 export default function StockDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [stock, setStock] = useState<Stock | null>(null);
+  const [dividends, setDividends] = useState<Dividend[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [dividendsLoading, setDividendsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [dividendsError, setDividendsError] = useState<string | null>(null);
 
   const stockSymbol = params.stockSymbol as string;
 
@@ -51,6 +65,34 @@ export default function StockDetailPage() {
     }, 1000); // 模擬網路延過 1 秒
 
     return () => clearTimeout(fetchData);
+  }, [stockSymbol]);
+
+  // 獲取股利資訊
+  useEffect(() => {
+    if (!stockSymbol) return;
+
+    setDividendsLoading(true);
+    setDividendsError(null);
+
+    fetch(`/api/stocks/${stockSymbol}/dividends`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(
+            res.status === 404 ? "找不到股利資訊" : "獲取股利資訊時發生錯誤"
+          );
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setDividends(data);
+      })
+      .catch((err) => {
+        console.error("獲取股利資訊時發生錯誤:", err);
+        setDividendsError(err.message);
+      })
+      .finally(() => {
+        setDividendsLoading(false);
+      });
   }, [stockSymbol]);
 
   const handleBack = () => {
@@ -124,6 +166,56 @@ export default function StockDetailPage() {
                   </div>
                 </div>
               </div>
+            </div>
+            
+            {/* 股利資訊區塊 */}
+            <div className="bg-white shadow-sm rounded-md overflow-hidden border border-gray-100 p-6 mb-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">歷年股利資訊</h2>
+              
+              {dividendsLoading ? (
+                <div className="flex justify-center items-center h-32">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              ) : dividendsError ? (
+                <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md">
+                  {dividendsError}
+                </div>
+              ) : dividends.length === 0 ? (
+                <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 rounded-md">
+                  此股票無股利資訊或尚未獲取到股利資料
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">年度</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">除息日</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">現金股利</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">股票股利</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">合計股利</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">發放日期</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {dividends.map((dividend) => (
+                        <tr key={dividend.id} className="hover:bg-gray-50">
+                          <td className="py-3 px-4 whitespace-nowrap">{dividend.year}</td>
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            {dividend.exDividendDate ? new Date(dividend.exDividendDate).toLocaleDateString() : "-"}
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap">{dividend.cashDividend || "-"}</td>
+                          <td className="py-3 px-4 whitespace-nowrap">{dividend.stockDividend || "-"}</td>
+                          <td className="py-3 px-4 whitespace-nowrap font-medium">{dividend.totalDividend || "-"}</td>
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            {dividend.issuedDate ? new Date(dividend.issuedDate).toLocaleDateString() : "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         ) : (

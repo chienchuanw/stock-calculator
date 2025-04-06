@@ -1,5 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faChevronDown, 
+  faChevronLeft, 
+  faChevronRight,
+  faSearch,
+  faTimes,
+  faBars,
+  faDownload,
+  faPlus,
+  faEllipsis
+} from "@fortawesome/free-solid-svg-icons";
 
 interface Stock {
   id: string;
@@ -155,41 +167,14 @@ export default function StocksPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-400"
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+                <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
               </div>
               {searchTerm && (
                 <button
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   onClick={() => setSearchTerm("")}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
+                  <FontAwesomeIcon icon={faTimes} />
                 </button>
               )}
             </div>
@@ -210,76 +195,23 @@ export default function StocksPage() {
                   <option value={50}>50</option>
                 </select>
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg
-                    width="10"
-                    height="6"
-                    viewBox="0 0 10 6"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 1L5 5L9 1"
-                      stroke="#6B7280"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <FontAwesomeIcon icon={faChevronDown} className="text-gray-500" size="xs" />
                 </div>
               </div>
             </div>
 
             <button className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded px-3 py-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 7h18M3 12h18M3 17h12"></path>
-              </svg>
+              <FontAwesomeIcon icon={faBars} />
               <span>篩選</span>
             </button>
 
             <button className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded px-3 py-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
+              <FontAwesomeIcon icon={faDownload} />
               <span>匯出</span>
             </button>
 
             <button className="flex items-center gap-2 text-sm text-white bg-blue-500 hover:bg-blue-600 rounded px-3 py-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
+              <FontAwesomeIcon icon={faPlus} />
               <span>新增股票</span>
             </button>
           </div>
@@ -307,73 +239,25 @@ export default function StocksPage() {
                   <th className="text-left py-3 px-4 font-medium">
                     <div className="flex items-center gap-1">
                       股票代號
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
+                      <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
                     </div>
                   </th>
                   <th className="text-left py-3 px-4 font-medium">
                     <div className="flex items-center gap-1">
                       股票名稱
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
+                      <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
                     </div>
                   </th>
                   <th className="text-left py-3 px-4 font-medium">
                     <div className="flex items-center gap-1">
                       成交股市
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
+                      <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
                     </div>
                   </th>
                   <th className="text-left py-3 px-4 font-medium">
                     <div className="flex items-center gap-1">
                       成交股數
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
+                      <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
                     </div>
                   </th>
                   <th className="text-left py-3 px-4 font-medium w-20">操作</th>
@@ -407,21 +291,7 @@ export default function StocksPage() {
                       </td>
                       <td className="py-3 px-4 text-sm w-20">
                         <button className="text-gray-400 hover:text-gray-600">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <circle cx="12" cy="12" r="1" />
-                            <circle cx="19" cy="12" r="1" />
-                            <circle cx="5" cy="12" r="1" />
-                          </svg>
+                          <FontAwesomeIcon icon={faEllipsis} />
                         </button>
                       </td>
                     </tr>
@@ -460,19 +330,7 @@ export default function StocksPage() {
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m15 18-6-6 6-6" />
-              </svg>
+              <FontAwesomeIcon icon={faChevronLeft} />
               上一頁
             </button>
 
@@ -538,19 +396,7 @@ export default function StocksPage() {
               disabled={currentPage === totalPages}
             >
               下一頁
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m9 18 6-6-6-6" />
-              </svg>
+              <FontAwesomeIcon icon={faChevronRight} />
             </button>
           </div>
         )}

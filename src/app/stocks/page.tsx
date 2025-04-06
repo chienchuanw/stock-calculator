@@ -21,6 +21,12 @@ interface Stock {
   tradeVolume: number;
 }
 
+interface WatchlistItem {
+  id: string;
+  stockSymbol: string;
+  createdAt: string;
+}
+
 export default function StocksPage() {
   const [allData, setAllData] = useState<Stock[]>([]);
   const [filteredData, setFilteredData] = useState<Stock[]>([]);
@@ -30,6 +36,9 @@ export default function StocksPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [inputPage, setInputPage] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [addingToWatchlist, setAddingToWatchlist] = useState<string>("");
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | '' }>({ message: '', type: '' });
 
   // 處理數據載入
   useEffect(() => {
@@ -37,15 +46,21 @@ export default function StocksPage() {
 
     // 添加延過，使 loading 狀態更明顯
     const fetchData = setTimeout(() => {
-      fetch("/api/stocks")
-        .then((res) => res.json())
-        .then((data) => {
-          setAllData(data);
-          setFilteredData(data);
-          setTotalPages(Math.ceil(data.length / itemsPerPage));
+      Promise.all([
+        fetch("/api/stocks").then(res => res.json()),
+        fetch("/api/watchlist").then(res => res.json())
+      ])
+        .then(([stocksData, watchlistData]) => {
+          setAllData(stocksData);
+          setFilteredData(stocksData);
+          setTotalPages(Math.ceil(stocksData.length / itemsPerPage));
+          
+          // 設置觀測名單
+          const watchlistSymbols = watchlistData.map((item: WatchlistItem) => item.stockSymbol);
+          setWatchlist(watchlistSymbols);
         })
         .catch((error) => {
-          console.error("獲取股票資料時發生錯誤:", error);
+          console.error("獲取資料時發生錯誤:", error);
         })
         .finally(() => {
           setLoading(false);
@@ -115,6 +130,93 @@ export default function StocksPage() {
       handlePageJump();
     }
   };
+  
+  // 添加股票到觀測名單
+  const addToWatchlist = async (stockSymbol: string) => {
+    if (watchlist.includes(stockSymbol)) {
+      setNotification({
+        message: '股票已在觀測名單中',
+        type: 'error'
+      });
+      setTimeout(() => setNotification({ message: '', type: '' }), 3000);
+      return;
+    }
+    
+    setAddingToWatchlist(stockSymbol);
+    
+    try {
+      const response = await fetch('/api/watchlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ stockSymbol }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setWatchlist([...watchlist, stockSymbol]);
+        setNotification({
+          message: data.message || '已新增到觀測名單',
+          type: 'success'
+        });
+      } else {
+        setNotification({
+          message: data.message || '新增失敗',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('新增至觀測名單時發生錯誤:', error);
+      setNotification({
+        message: '新增至觀測名單時發生錯誤',
+        type: 'error'
+      });
+    } finally {
+      setAddingToWatchlist('');
+      setTimeout(() => setNotification({ message: '', type: '' }), 3000);
+    }
+  };
+  
+  // 從觀測名單移除股票
+  const removeFromWatchlist = async (stockSymbol: string) => {
+    setAddingToWatchlist(stockSymbol);
+    
+    try {
+      const response = await fetch('/api/watchlist', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ stockSymbol }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setWatchlist(watchlist.filter(symbol => symbol !== stockSymbol));
+        setNotification({
+          message: data.message || '已從觀測名單移除',
+          type: 'success'
+        });
+      } else {
+        setNotification({
+          message: data.message || '移除失敗',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('從觀測名單移除時發生錯誤:', error);
+      setNotification({
+        message: '從觀測名單移除時發生錯誤',
+        type: 'error'
+      });
+    } finally {
+      setAddingToWatchlist('');
+      setTimeout(() => setNotification({ message: '', type: '' }), 3000);
+    }
+  };
 
   // 產生頁碼陣列
   const getPaginationNumbers = () => {
@@ -152,7 +254,18 @@ export default function StocksPage() {
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="px-8 py-6">
+      <div className="px-8 py-6 relative">
+        {/* 通知元件 */}
+        {notification.message && (
+          <div className={`fixed top-6 right-6 z-50 p-4 rounded-md shadow-md animate-fade-in-out ${notification.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-medium ${notification.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+                {notification.message}
+              </span>
+            </div>
+          </div>
+        )}
+        
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold text-gray-800">股票資訊</h1>
 
@@ -298,9 +411,42 @@ export default function StocksPage() {
                         {stock.tradeVolume.toLocaleString()} 股
                       </td>
                       <td className="py-3 px-4 text-sm w-20">
-                        <button className="text-gray-400 hover:text-gray-600">
-                          <FontAwesomeIcon icon={faEllipsis} />
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          {watchlist.includes(stock.stockSymbol) ? (
+                            <button 
+                              className="text-yellow-400 hover:text-yellow-500 transition-colors"
+                              title="從觀測名單移除"
+                              onClick={() => removeFromWatchlist(stock.stockSymbol)}
+                              disabled={addingToWatchlist === stock.stockSymbol}
+                            >
+                              {addingToWatchlist === stock.stockSymbol ? (
+                                <div className="w-4 h-4 border-t-2 border-yellow-500 border-solid rounded-full animate-spin"></div>
+                              ) : (
+                                <svg className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                              )}
+                            </button>
+                          ) : (
+                            <button 
+                              className="text-gray-400 hover:text-yellow-400 transition-colors"
+                              title="加入觀測名單"
+                              onClick={() => addToWatchlist(stock.stockSymbol)}
+                              disabled={addingToWatchlist === stock.stockSymbol}
+                            >
+                              {addingToWatchlist === stock.stockSymbol ? (
+                                <div className="w-4 h-4 border-t-2 border-yellow-500 border-solid rounded-full animate-spin"></div>
+                              ) : (
+                                <svg className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                              )}
+                            </button>
+                          )}
+                          <button className="text-gray-400 hover:text-gray-600">
+                            <FontAwesomeIcon icon={faEllipsis} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

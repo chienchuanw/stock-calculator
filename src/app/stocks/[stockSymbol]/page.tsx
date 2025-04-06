@@ -27,25 +27,30 @@ export default function StockDetailPage() {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/stocks/${stockSymbol}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(
-            res.status === 404 ? "找不到此股票" : "獲取股票資訊時發生錯誤"
-          );
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setStock(data);
-      })
-      .catch((err) => {
-        console.error("獲取股票資訊時發生錯誤:", err);
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    // 添加延過，使 loading 狀態更明顯
+    const fetchData = setTimeout(() => {
+      fetch(`/api/stocks/${stockSymbol}`)
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(
+              res.status === 404 ? "找不到此股票" : "獲取股票資訊時發生錯誤"
+            );
+          }
+          return res.json();
+        })
+        .then((data) => {
+          setStock(data);
+        })
+        .catch((err) => {
+          console.error("獲取股票資訊時發生錯誤:", err);
+          setError(err.message);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }, 1000); // 模擬網路延過 1 秒
+
+    return () => clearTimeout(fetchData);
   }, [stockSymbol]);
 
   const handleBack = () => {
@@ -77,8 +82,11 @@ export default function StockDetailPage() {
         </button>
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="flex justify-center items-center h-64 bg-white rounded-md shadow-sm border border-gray-100 p-6">
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-3"></div>
+              <p className="text-gray-500 font-medium">正在載入股票資料...</p>
+            </div>
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md">

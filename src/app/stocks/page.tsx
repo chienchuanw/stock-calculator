@@ -219,7 +219,7 @@ export default function StocksPage() {
 
         {/* 表格 */}
         <div
-          className="bg-white shadow-sm rounded-md overflow-hidden border border-gray-100 relative"
+          className="bg-white shadow-sm rounded-md overflow-hidden border border-gray-100 relative table-fixed w-full"
           style={{ minHeight: loading ? "300px" : "auto" }}
         >
           {loading ? (
@@ -233,7 +233,14 @@ export default function StocksPage() {
               </div>
             </div>
           ) : (
-            <table className="w-full">
+            <table className="w-full table-fixed">
+              <colgroup>
+                <col style={{ width: "15%" }} /> {/* 股票代號 */}
+                <col style={{ width: "40%" }} /> {/* 股票名稱 */}
+                <col style={{ width: "15%" }} /> {/* 成交股市 */}
+                <col style={{ width: "20%" }} /> {/* 成交股數 */}
+                <col style={{ width: "10%" }} /> {/* 操作 */}
+              </colgroup>
               <thead>
                 <tr className="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">
                   <th className="text-left py-3 px-4 font-medium">
@@ -270,23 +277,24 @@ export default function StocksPage() {
                       key={stock.id}
                       className="border-b border-gray-100 hover:bg-gray-50"
                     >
-                      <td className="py-3 px-4 text-sm">
+                      <td className="py-3 px-4 text-sm truncate">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">
                             {stock.stockSymbol}
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-sm">
+                      <td className="py-3 px-4 text-sm truncate">
                         <a
                           href={`/stocks/${stock.stockSymbol}`}
                           className="text-blue-500 hover:underline"
+                          title={stock.stockName}
                         >
                           {stock.stockName}
                         </a>
                       </td>
-                      <td className="py-3 px-4 text-sm">{stock.market}</td>
-                      <td className="py-3 px-4 text-sm">
+                      <td className="py-3 px-4 text-sm truncate">{stock.market}</td>
+                      <td className="py-3 px-4 text-sm truncate">
                         {stock.tradeVolume.toLocaleString()} 股
                       </td>
                       <td className="py-3 px-4 text-sm w-20">

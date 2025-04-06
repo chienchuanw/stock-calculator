@@ -49,19 +49,30 @@ async function fetchAndInsertDividends(stockId: string) {
       },
     });
 
+    console.log(res);
+
     const rows: FinMindDividendRow[] = res.data.data;
 
-    for (const row of rows) {
+    // 若是 CLI 指定個股，先刪除該股票舊資料
+    if (symbolFromCli) {
+      await db.delete(dividends).where(eq(dividends.stockSymbol, stockId));
+      console.log(`🗑️ 已清除 ${stockId} 的舊有股利資料`);
+    }
+
+    for (const row of rows as any[]) {
       await db
         .insert(dividends)
         .values({
           stockSymbol: row.stock_id,
-          year: row.year,
-          exDividendDate: row.ex_dividend_trading_date ?? null,
-          cashDividend: row.cash_dividend?.toString() ?? null,
-          stockDividend: row.stock_dividend?.toString() ?? null,
-          totalDividend: row.total_dividend?.toString() ?? null,
-          issuedDate: row.date ?? null,
+          year: Number(row.year),
+          exDividendDate: row.CashExDividendTradingDate || null,
+          cashDividend: row.CashEarningsDistribution?.toString() || null,
+          stockDividend: row.StockEarningsDistribution?.toString() || null,
+          totalDividend: (
+            (row.CashEarningsDistribution ?? 0) +
+              (row.StockEarningsDistribution ?? 0) || null
+          )?.toString(),
+          issuedDate: row.date || null,
         })
         .onConflictDoNothing();
     }

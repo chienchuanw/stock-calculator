@@ -9,18 +9,26 @@ import { eq } from "drizzle-orm";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const { emailOrUsername, password } = body;
 
     // 基本驗證
-    if (!email || !password) {
-      return NextResponse.json({ error: "電子郵件和密碼是必填欄位" }, { status: 400 });
+    if (!emailOrUsername || !password) {
+      return NextResponse.json({ error: "帳號和密碼是必填欄位" }, { status: 400 });
     }
 
-    // 查找用戶
-    const userResults = await db.select()
+    // 查找用戶 - 先根據電子郵件查找
+    let userResults = await db.select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(eq(users.email, emailOrUsername))
       .limit(1);
+
+    // 如果電子郵件查找無結果，則根據用戶名查找
+    if (userResults.length === 0) {
+      userResults = await db.select()
+        .from(users)
+        .where(eq(users.username, emailOrUsername))
+        .limit(1);
+    }
 
     const user = userResults[0];
 

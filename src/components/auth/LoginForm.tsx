@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { loginUser, clearError } from "@/redux/authSlice";
 
 type LoginFormData = {
-  email: string;
+  emailOrUsername: string;
   password: string;
 };
 
@@ -40,7 +40,7 @@ export default function LoginForm() {
   
   return (
     <div className="w-full bg-white p-8">
-      <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">登入</h2>
+      <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">登入帳戶</h2>
       
       {error && (
         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
@@ -50,32 +50,33 @@ export default function LoginForm() {
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block mb-1 text-sm font-medium text-gray-700">
-            電子郵件
+          <label htmlFor="emailOrUsername" className="block mb-1 text-sm font-medium text-gray-700">
+            帳號
           </label>
+          <div className="text-xs text-gray-500 mb-2">可使用電子郵件或用戶名登入</div>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FontAwesomeIcon icon={faUser} className="text-gray-400" />
             </div>
             <input
-              {...register("email", {
-                required: "電子郵件是必填項",
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "請輸入有效的電子郵件地址",
+              {...register("emailOrUsername", {
+                required: "帳號是必填項",
+                minLength: {
+                  value: 3,
+                  message: "帳號長度不能少於3個字符",
                 },
               })}
-              type="email"
-              id="email"
+              type="text"
+              id="emailOrUsername"
               className={`pl-10 w-full p-2.5 border rounded-md focus:ring-2 focus:outline-none ${
-                errors.email ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+                errors.emailOrUsername ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
-              placeholder="your@email.com"
+              placeholder="電子郵件或用戶名"
               disabled={loading}
             />
           </div>
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+          {errors.emailOrUsername && (
+            <p className="mt-1 text-sm text-red-600">{errors.emailOrUsername.message}</p>
           )}
         </div>
         

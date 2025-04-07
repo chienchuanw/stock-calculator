@@ -1,35 +1,23 @@
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { 
-  faChevronLeft, 
-  faChevronRight,
-  faChevronDown,
-  faChevronUp,
-  faSearch,
-  faTimes,
-  faEllipsis,
-  faFilter,
-  faDownload,
-  faPlus,
-  faBars,
-  faSort,
-  faSortUp,
-  faSortDown
+import {
+  faChartLine,
+  faStar,
+  faHome,
+  faWallet,
+  faUser,
+  faLock,
+  faEnvelope,
+  faSignOutAlt,
 } from '@fortawesome/free-solid-svg-icons';
 
-// 將圖示添加到庫中，以便在整個專案中使用
+// 加入所有需要的圖標
 library.add(
-  faChevronLeft,
-  faChevronRight,
-  faChevronDown,
-  faChevronUp,
-  faSearch,
-  faTimes,
-  faEllipsis,
-  faFilter,
-  faDownload,
-  faPlus,
-  faBars,
-  faSort,
-  faSortUp,
-  faSortDown
+  faChartLine,
+  faStar,
+  faHome,
+  faWallet,
+  faUser,
+  faLock,
+  faEnvelope,
+  faSignOutAlt
 );

@@ -6,6 +6,8 @@ import {
   decimal,
   date,
   timestamp,
+  text,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const dividends = pgTable("dividends", {
@@ -43,4 +45,15 @@ export const portfolio = pgTable("portfolio", {
   purchaseDate: date("purchase_date").notNull(),
   notes: varchar("notes", { length: 500 }),
   createdAt: timestamp("created_at").defaultNow(),
+  userId: integer("user_id"),
+});
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  email: varchar("email", { length: 100 }).notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });

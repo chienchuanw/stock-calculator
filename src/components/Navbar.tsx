@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChartLine, faStar, faHome } from "@fortawesome/free-solid-svg-icons";
+import { faChartLine, faStar, faHome, faWallet } from "@fortawesome/free-solid-svg-icons";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -56,6 +56,20 @@ export default function Navbar() {
               <div className="flex items-center gap-1 sm:gap-2">
                 <FontAwesomeIcon icon={faStar} className="text-yellow-400" />
                 <span className="hidden sm:inline">觀測名單</span>
+              </div>
+            </Link>
+            
+            <Link 
+              href="/portfolio" 
+              className={`px-2 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                pathname === "/portfolio" 
+                  ? "bg-gray-100 text-gray-900" 
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              <div className="flex items-center gap-1 sm:gap-2">
+                <FontAwesomeIcon icon={faWallet} className="text-green-600" />
+                <span className="hidden sm:inline">持有股票</span>
               </div>
             </Link>
           </div>

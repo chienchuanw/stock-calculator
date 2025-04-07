@@ -10,69 +10,79 @@ import {
   faBars,
   faDownload,
   faPlus,
-  faEllipsis,
-  faStar,
+  faEdit,
+  faTrash,
+  faInfoCircle,
   faCoins
 } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
+import AddStockModal from "./AddStockModal";
 
-interface Stock {
-  id: string;
+interface PortfolioItem {
+  id: number;
   stockSymbol: string;
   stockName: string;
-  market: string;
-  tradeVolume: number;
-}
-
-interface WatchlistItem {
-  id: string;
-  stockSymbol: string;
+  quantity: number;
+  purchasePrice: number;
+  purchaseDate: string;
+  notes?: string;
   createdAt: string;
 }
 
-export default function StocksPage() {
-  const [allData, setAllData] = useState<Stock[]>([]);
-  const [filteredData, setFilteredData] = useState<Stock[]>([]);
+export default function PortfolioPage() {
+  const [portfolioData, setPortfolioData] = useState<PortfolioItem[]>([]);
+  const [filteredData, setFilteredData] = useState<PortfolioItem[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [inputPage, setInputPage] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [watchlist, setWatchlist] = useState<string[]>([]);
-  const [addingToWatchlist, setAddingToWatchlist] = useState<string>("");
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | '' }>({ message: '', type: '' });
-
-  // 處理數據載入
-  useEffect(() => {
+  const [stockPrices, setStockPrices] = useState<{[key: string]: number}>({});
+  
+  // 載入持有股票列表
+  const fetchPortfolioData = () => {
     setLoading(true);
-
-    // 添加延過，使 loading 狀態更明顯
+    
+    // 添加延遲，使載入狀態更明顯
     const fetchData = setTimeout(() => {
-      Promise.all([
-        fetch("/api/stocks").then(res => res.json()),
-        fetch("/api/watchlist").then(res => res.json())
-      ])
-        .then(([stocksData, watchlistData]) => {
-          setAllData(stocksData);
-          setFilteredData(stocksData);
-          setTotalPages(Math.ceil(stocksData.length / itemsPerPage));
+      fetch("/api/portfolio")
+        .then(res => res.json())
+        .then(data => {
+          setPortfolioData(data);
+          setFilteredData(data);
+          setTotalPages(Math.ceil(data.length / itemsPerPage));
           
-          // 設置觀測名單
-          const watchlistSymbols = watchlistData.map((item: WatchlistItem) => item.stockSymbol);
-          setWatchlist(watchlistSymbols);
+          // 假設我們有獲取最新股價的 API (這裡模擬)
+          const mockPrices: {[key: string]: number} = {};
+          data.forEach((item: PortfolioItem) => {
+            // 股價模擬成購買價格的 0.9-1.1 倍
+            mockPrices[item.stockSymbol] = item.purchasePrice * (0.9 + Math.random() * 0.2);
+          });
+          setStockPrices(mockPrices);
         })
-        .catch((error) => {
-          console.error("獲取資料時發生錯誤:", error);
+        .catch(error => {
+          console.error("獲取持股數據時發生錯誤:", error);
+          setNotification({
+            message: "獲取持股數據時發生錯誤",
+            type: "error"
+          });
         })
         .finally(() => {
           setLoading(false);
         });
-    }, 1000); // 模擬網路延過 1 秒
-
+    }, 1000);
+    
     return () => clearTimeout(fetchData);
-  }, [itemsPerPage]);
-
+  };
+  
+  // 初始加載數據
+  useEffect(() => {
+    fetchPortfolioData();
+  }, []);
+  
   // 當每頁顯示項目數量變更時重新計算總頁數
   useEffect(() => {
     setTotalPages(Math.ceil(filteredData.length / itemsPerPage));
@@ -85,39 +95,39 @@ export default function StocksPage() {
   // 處理搜索邏輯
   useEffect(() => {
     if (searchTerm.trim() === "") {
-      setFilteredData(allData);
+      setFilteredData(portfolioData);
     } else {
       const term = searchTerm.toLowerCase().trim();
-      const filtered = allData.filter(
-        (stock) =>
-          stock.stockSymbol.toLowerCase().includes(term) ||
-          stock.stockName.toLowerCase().includes(term)
+      const filtered = portfolioData.filter(
+        (item) =>
+          item.stockSymbol.toLowerCase().includes(term) ||
+          (item.stockName && item.stockName.toLowerCase().includes(term))
       );
       setFilteredData(filtered);
       setCurrentPage(1); // 重置到第一頁
     }
-  }, [searchTerm, allData]);
-
+  }, [searchTerm, portfolioData]);
+  
   // 計算當前頁面顯示的數據
   const currentData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
+  
   // 處理頁面變更
   const handlePageChange = (pageNumber: number) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
     window.scrollTo(0, 0); // 回到頁面頂部
   };
-
+  
   // 處理頁碼輸入框變更
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // 只允許輸入數字
     const value = e.target.value.replace(/[^0-9]/g, '');
     setInputPage(value);
   };
-
+  
   // 處理頁碼跳轉
   const handlePageJump = () => {
     const pageNumber = parseInt(inputPage, 10);
@@ -126,7 +136,7 @@ export default function StocksPage() {
       setInputPage(""); // 跳轉後清空輸入框
     }
   };
-
+  
   // 處理鍵盤事件（按下 Enter 鍵時跳轉）
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -134,93 +144,67 @@ export default function StocksPage() {
     }
   };
   
-  // 添加股票到觀測名單
-  const addToWatchlist = async (stockSymbol: string) => {
-    if (watchlist.includes(stockSymbol)) {
-      setNotification({
-        message: '股票已在觀測名單中',
-        type: 'error'
-      });
-      setTimeout(() => setNotification({ message: '', type: '' }), 3000);
+  // 處理刪除持股項目
+  const handleDeleteItem = async (id: number) => {
+    if (!confirm("確定要刪除這筆持股記錄嗎？")) {
       return;
     }
     
-    setAddingToWatchlist(stockSymbol);
-    
     try {
-      const response = await fetch('/api/watchlist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ stockSymbol }),
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        setWatchlist([...watchlist, stockSymbol]);
-        setNotification({
-          message: data.message || '已新增到觀測名單',
-          type: 'success'
-        });
-      } else {
-        setNotification({
-          message: data.message || '新增失敗',
-          type: 'error'
-        });
-      }
-    } catch (error) {
-      console.error('新增至觀測名單時發生錯誤:', error);
-      setNotification({
-        message: '新增至觀測名單時發生錯誤',
-        type: 'error'
-      });
-    } finally {
-      setAddingToWatchlist('');
-      setTimeout(() => setNotification({ message: '', type: '' }), 3000);
-    }
-  };
-  
-  // 從觀測名單移除股票
-  const removeFromWatchlist = async (stockSymbol: string) => {
-    setAddingToWatchlist(stockSymbol);
-    
-    try {
-      const response = await fetch('/api/watchlist', {
+      const response = await fetch('/api/portfolio', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ stockSymbol }),
+        body: JSON.stringify({ id }),
       });
       
       const data = await response.json();
       
       if (response.ok) {
-        setWatchlist(watchlist.filter(symbol => symbol !== stockSymbol));
+        // 更新本地數據
+        setPortfolioData(prevState => prevState.filter(item => item.id !== id));
         setNotification({
-          message: data.message || '已從觀測名單移除',
+          message: data.message || '已成功刪除持股項目',
           type: 'success'
         });
       } else {
         setNotification({
-          message: data.message || '移除失敗',
+          message: data.message || '刪除失敗',
           type: 'error'
         });
       }
     } catch (error) {
-      console.error('從觀測名單移除時發生錯誤:', error);
+      console.error('刪除持股項目時發生錯誤:', error);
       setNotification({
-        message: '從觀測名單移除時發生錯誤',
+        message: '刪除持股項目時發生錯誤',
         type: 'error'
       });
-    } finally {
-      setAddingToWatchlist('');
-      setTimeout(() => setNotification({ message: '', type: '' }), 3000);
     }
+    
+    setTimeout(() => setNotification({ message: '', type: '' }), 3000);
   };
-
+  
+  // 計算總持股價值
+  const calculateTotalValue = () => {
+    return portfolioData.reduce((total, item) => {
+      const currentPrice = stockPrices[item.stockSymbol] || item.purchasePrice;
+      return total + (currentPrice * item.quantity);
+    }, 0);
+  };
+  
+  // 計算總成本
+  const calculateTotalCost = () => {
+    return portfolioData.reduce((total, item) => {
+      return total + (item.purchasePrice * item.quantity);
+    }, 0);
+  };
+  
+  // 計算總盈虧
+  const calculateTotalProfitLoss = () => {
+    return calculateTotalValue() - calculateTotalCost();
+  };
+  
   // 產生頁碼陣列
   const getPaginationNumbers = () => {
     let pages = [];
@@ -254,6 +238,32 @@ export default function StocksPage() {
 
     return pages;
   };
+  
+  // 格式化數字為金額
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('zh-TW', {
+      style: 'currency',
+      currency: 'TWD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+  
+  // 計算盈虧百分比
+  const calculateProfitLossPercentage = (purchasePrice: number, currentPrice: number) => {
+    return ((currentPrice - purchasePrice) / purchasePrice) * 100;
+  };
+  
+  // 處理新增股票成功
+  const handleAddSuccess = (newItem: PortfolioItem) => {
+    setPortfolioData(prev => [...prev, newItem]);
+    setShowAddModal(false);
+    setNotification({
+      message: '已成功新增持股項目',
+      type: 'success'
+    });
+    setTimeout(() => setNotification({ message: '', type: '' }), 3000);
+  };
 
   return (
     <div className="bg-white">
@@ -270,7 +280,7 @@ export default function StocksPage() {
         )}
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">股票資訊</h1>
+          <h1 className="text-2xl font-bold text-gray-800">持有股票</h1>
 
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
             {/* 搜索框 */}
@@ -325,6 +335,37 @@ export default function StocksPage() {
               <FontAwesomeIcon icon={faDownload} />
               <span>匯出</span>
             </button>
+
+            <button 
+              className="flex items-center gap-2 text-sm text-white bg-green-500 hover:bg-green-600 rounded px-3 py-1"
+              onClick={() => setShowAddModal(true)}
+            >
+              <FontAwesomeIcon icon={faPlus} />
+              <span>新增股票</span>
+            </button>
+          </div>
+        </div>
+        
+        {/* 摘要卡片 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-white p-4 border border-gray-100 rounded-lg shadow-sm">
+            <div className="text-sm text-gray-500 mb-1">總投資成本</div>
+            <div className="text-xl font-bold text-gray-800">{formatCurrency(calculateTotalCost())}</div>
+          </div>
+          
+          <div className="bg-white p-4 border border-gray-100 rounded-lg shadow-sm">
+            <div className="text-sm text-gray-500 mb-1">目前總市值</div>
+            <div className="text-xl font-bold text-gray-800">{formatCurrency(calculateTotalValue())}</div>
+          </div>
+          
+          <div className="bg-white p-4 border border-gray-100 rounded-lg shadow-sm">
+            <div className="text-sm text-gray-500 mb-1">總盈虧</div>
+            <div className={`text-xl font-bold ${calculateTotalProfitLoss() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(calculateTotalProfitLoss())}
+              <span className="text-sm ml-2">
+                ({(calculateTotalProfitLoss() / calculateTotalCost() * 100).toFixed(2)}%)
+              </span>
+            </div>
           </div>
         </div>
 
@@ -339,18 +380,21 @@ export default function StocksPage() {
               style={{ minHeight: "300px" }}
             >
               <div className="flex flex-col items-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-3"></div>
-                <p className="text-gray-500 font-medium">正在載入股票資料...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mb-3"></div>
+                <p className="text-gray-500 font-medium">正在載入持股資料...</p>
               </div>
             </div>
           ) : (
-            <table className="w-full min-w-[640px]">
+            <table className="w-full min-w-[768px]">
               <colgroup>
-                <col className="w-[15%] md:w-[15%]" />
-                <col className="w-[30%] md:w-[40%]" />
-                <col className="w-[15%] md:w-[15%]" />
-                <col className="w-[25%] md:w-[20%]" />
-                <col className="w-[15%] md:w-[10%]" />
+                <col className="w-[12%]" />
+                <col className="w-[18%]" />
+                <col className="w-[12%]" />
+                <col className="w-[12%]" />
+                <col className="w-[12%]" />
+                <col className="w-[12%]" />
+                <col className="w-[12%]" />
+                <col className="w-[10%]" />
               </colgroup>
               <thead>
                 <tr className="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">
@@ -366,92 +410,111 @@ export default function StocksPage() {
                       <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
                     </div>
                   </th>
-                  <th className="text-left py-3 px-4 font-medium">
-                    <div className="flex items-center gap-1">
-                      成交股市
+                  <th className="text-right py-3 px-4 font-medium">
+                    <div className="flex items-center gap-1 justify-end">
+                      持有股數
                       <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
                     </div>
                   </th>
-                  <th className="text-left py-3 px-4 font-medium">
-                    <div className="flex items-center gap-1">
-                      成交股數
+                  <th className="text-right py-3 px-4 font-medium">
+                    <div className="flex items-center gap-1 justify-end">
+                      買入價格
                       <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
                     </div>
                   </th>
-                  <th className="text-left py-3 px-4 font-medium w-20">操作</th>
+                  <th className="text-right py-3 px-4 font-medium">
+                    <div className="flex items-center gap-1 justify-end">
+                      目前價格
+                      <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
+                    </div>
+                  </th>
+                  <th className="text-right py-3 px-4 font-medium">
+                    <div className="flex items-center gap-1 justify-end">
+                      市值
+                      <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
+                    </div>
+                  </th>
+                  <th className="text-right py-3 px-4 font-medium">
+                    <div className="flex items-center gap-1 justify-end">
+                      盈虧
+                      <FontAwesomeIcon icon={faChevronDown} className="ml-1" size="xs" />
+                    </div>
+                  </th>
+                  <th className="text-center py-3 px-4 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {currentData.length > 0 ? (
-                  currentData.map((stock) => (
-                    <tr
-                      key={stock.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-4 text-sm truncate">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            {stock.stockSymbol}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm truncate">
-                        <a
-                          href={`/stocks/${stock.stockSymbol}`}
-                          className="text-blue-500 hover:underline"
-                          title={stock.stockName}
-                        >
-                          {stock.stockName}
-                        </a>
-                      </td>
-                      <td className="py-3 px-4 text-sm truncate">{stock.market}</td>
-                      <td className="py-3 px-4 text-sm truncate">
-                        {stock.tradeVolume.toLocaleString()} 股
-                      </td>
-                      <td className="py-3 px-4 text-sm w-20">
-                        <div className="flex items-center space-x-2">
-                          {watchlist.includes(stock.stockSymbol) ? (
+                  currentData.map((item) => {
+                    const currentPrice = stockPrices[item.stockSymbol] || item.purchasePrice;
+                    const profitLoss = (currentPrice - item.purchasePrice) * item.quantity;
+                    const profitLossPercentage = calculateProfitLossPercentage(item.purchasePrice, currentPrice);
+                    
+                    return (
+                      <tr
+                        key={item.id}
+                        className="border-b border-gray-100 hover:bg-gray-50"
+                      >
+                        <td className="py-3 px-4 text-sm truncate">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">
+                              {item.stockSymbol}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm truncate">
+                          <a
+                            href={`/stocks/${item.stockSymbol}`}
+                            className="text-blue-500 hover:underline"
+                            title={item.stockName}
+                          >
+                            {item.stockName || "-"}
+                          </a>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right truncate">
+                          {item.quantity.toLocaleString()} 股
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right truncate">
+                          {item.purchasePrice.toLocaleString()} 元
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right truncate">
+                          {currentPrice.toLocaleString()} 元
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right truncate">
+                          {formatCurrency(currentPrice * item.quantity)}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-right truncate">
+                          <div className={`${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatCurrency(profitLoss)}
+                            <div className="text-xs">
+                              {profitLossPercentage >= 0 ? '+' : ''}{profitLossPercentage.toFixed(2)}%
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          <div className="flex items-center justify-center space-x-2">
                             <button 
-                              className="text-yellow-400 hover:text-yellow-500 transition-colors"
-                              title="從觀測名單移除"
-                              onClick={() => removeFromWatchlist(stock.stockSymbol)}
-                              disabled={addingToWatchlist === stock.stockSymbol}
+                              className="text-blue-500 hover:text-blue-600"
+                              title="編輯"
                             >
-                              {addingToWatchlist === stock.stockSymbol ? (
-                                <div className="w-4 h-4 border-t-2 border-yellow-500 border-solid rounded-full animate-spin"></div>
-                              ) : (
-                                <svg className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                                </svg>
-                              )}
+                              <FontAwesomeIcon icon={faEdit} />
                             </button>
-                          ) : (
                             <button 
-                              className="text-gray-400 hover:text-yellow-400 transition-colors"
-                              title="加入觀測名單"
-                              onClick={() => addToWatchlist(stock.stockSymbol)}
-                              disabled={addingToWatchlist === stock.stockSymbol}
+                              className="text-red-500 hover:text-red-600"
+                              title="刪除"
+                              onClick={() => handleDeleteItem(item.id)}
                             >
-                              {addingToWatchlist === stock.stockSymbol ? (
-                                <div className="w-4 h-4 border-t-2 border-yellow-500 border-solid rounded-full animate-spin"></div>
-                              ) : (
-                                <svg className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                                </svg>
-                              )}
+                              <FontAwesomeIcon icon={faTrash} />
                             </button>
-                          )}
-                          <button className="text-gray-400 hover:text-gray-600">
-                            <FontAwesomeIcon icon={faEllipsis} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : searchTerm ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={8}
                       className="py-4 px-4 text-sm text-center text-gray-500"
                     >
                       沒有符合 "{searchTerm}" 的搜尋結果
@@ -460,10 +523,10 @@ export default function StocksPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={8}
                       className="py-4 px-4 text-sm text-center text-gray-500"
                     >
-                      沒有股票資料
+                      沒有持股資料
                     </td>
                   </tr>
                 )}
@@ -495,7 +558,7 @@ export default function StocksPage() {
                       className={`flex items-center justify-center w-8 h-8 text-sm 
                         ${
                           page === currentPage
-                            ? "bg-blue-500 text-white border border-blue-500"
+                            ? "bg-green-500 text-white border border-green-500"
                             : "border border-gray-200 hover:bg-gray-50"
                         } 
                         ${index === 0 ? "rounded-l" : ""} 
@@ -562,6 +625,14 @@ export default function StocksPage() {
             {filteredData.length} 筆
             {searchTerm && ` (搜尋結果)`}
           </div>
+        )}
+        
+        {/* 新增股票 Modal */}
+        {showAddModal && (
+          <AddStockModal 
+            onClose={() => setShowAddModal(false)} 
+            onAddSuccess={handleAddSuccess}
+          />
         )}
       </div>
     </div>

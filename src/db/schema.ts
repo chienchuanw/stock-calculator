@@ -3,6 +3,7 @@ import {
   serial,
   varchar,
   integer,
+  decimal,
   date,
   timestamp,
 } from "drizzle-orm/pg-core";
@@ -30,5 +31,16 @@ export const dailyStocks = pgTable("daily_stocks", {
 export const watchlist = pgTable("watchlist", {
   id: serial("id").primaryKey(),
   stockSymbol: varchar("stock_symbol", { length: 10 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const portfolio = pgTable("portfolio", {
+  id: serial("id").primaryKey(),
+  stockSymbol: varchar("stock_symbol", { length: 10 }).notNull(),
+  stockName: varchar("stock_name", { length: 50 }),
+  quantity: integer("quantity").notNull(),
+  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),
+  purchaseDate: date("purchase_date").notNull(),
+  notes: varchar("notes", { length: 500 }),
   createdAt: timestamp("created_at").defaultNow(),
 });

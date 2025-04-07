@@ -256,7 +256,7 @@ export default function StocksPage() {
 
   return (
     <div className="bg-white">
-      <div className="px-8 py-6 relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
         {/* 通知元件 */}
         {notification.message && (
           <div className={`fixed top-6 right-6 z-50 p-4 rounded-md shadow-md animate-fade-in-out ${notification.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
@@ -339,7 +339,7 @@ export default function StocksPage() {
 
         {/* 表格 */}
         <div
-          className="bg-white shadow-sm rounded-md overflow-hidden border border-gray-100 relative table-fixed w-full"
+          className="bg-white shadow-sm rounded-md overflow-x-auto overflow-y-hidden border border-gray-100 relative w-full"
           style={{ minHeight: loading ? "300px" : "auto" }}
         >
           {loading ? (
@@ -353,13 +353,13 @@ export default function StocksPage() {
               </div>
             </div>
           ) : (
-            <table className="w-full table-fixed">
+            <table className="w-full min-w-[640px]">
               <colgroup>
-                <col style={{ width: "15%" }} />
-                <col style={{ width: "40%" }} />
-                <col style={{ width: "15%" }} />
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "10%" }} />
+                <col className="w-[15%] md:w-[15%]" />
+                <col className="w-[30%] md:w-[40%]" />
+                <col className="w-[15%] md:w-[15%]" />
+                <col className="w-[25%] md:w-[20%]" />
+                <col className="w-[15%] md:w-[10%]" />
               </colgroup>
               <thead>
                 <tr className="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">

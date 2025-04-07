@@ -143,7 +143,7 @@ export default function WatchlistPage() {
 
   return (
     <div className="bg-white">
-      <div className="px-8 py-6 relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
         {/* 通知元件 */}
         {notification.message && (
           <div className={`fixed top-6 right-6 z-50 p-4 rounded-md shadow-md animate-fade-in-out ${notification.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
@@ -190,7 +190,7 @@ export default function WatchlistPage() {
 
         {/* 表格 */}
         <div
-          className="bg-white shadow-sm rounded-md overflow-hidden border border-gray-100 relative"
+          className="bg-white shadow-sm rounded-md overflow-x-auto overflow-y-hidden border border-gray-100 relative"
           style={{ minHeight: loading ? "300px" : "auto" }}
         >
           {loading ? (
@@ -204,7 +204,15 @@ export default function WatchlistPage() {
               </div>
             </div>
           ) : (
-            <table className="w-full">
+            <table className="w-full min-w-[768px]">
+              <colgroup>
+                <col className="w-[15%]" />
+                <col className="w-[25%]" />
+                <col className="w-[15%]" />
+                <col className="w-[20%]" />
+                <col className="w-[15%]" />
+                <col className="w-[10%]" />
+              </colgroup>
               <thead>
                 <tr className="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">
                   <th className="text-left py-3 px-4 font-medium">

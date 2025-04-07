@@ -221,7 +221,7 @@ export default function StockDetailPage() {
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="px-8 py-6 relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
         {/* 通知元件 */}
         {notification.message && (
           <div className={`fixed top-6 right-6 z-50 p-4 rounded-md shadow-md animate-fade-in-out ${notification.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
@@ -320,7 +320,15 @@ export default function StockDetailPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[768px]">
+                    <colgroup>
+                      <col className="w-[10%]" />
+                      <col className="w-[18%]" />
+                      <col className="w-[18%]" />
+                      <col className="w-[18%]" />
+                      <col className="w-[18%]" />
+                      <col className="w-[18%]" />
+                    </colgroup>
                     <thead>
                       <tr className="bg-gray-50">
                         <th

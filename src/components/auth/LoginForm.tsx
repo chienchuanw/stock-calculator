@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faLock } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faLock, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { loginUser, clearError } from "@/redux/authSlice";
 
@@ -14,6 +14,7 @@ type LoginFormData = {
 };
 
 export default function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
@@ -96,14 +97,24 @@ export default function LoginForm() {
                   message: "密碼長度不能少於6個字符",
                 },
               })}
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
-              className={`pl-10 w-full p-2.5 border rounded-md focus:ring-2 focus:outline-none ${
+              className={`pl-10 pr-10 w-full p-2.5 border rounded-md focus:ring-2 focus:outline-none ${
                 errors.password ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
               placeholder="••••••••"
               disabled={loading}
             />
+            <div
+              className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              <FontAwesomeIcon
+                icon={showPassword ? faEyeSlash : faEye}
+                className="text-gray-400 hover:text-gray-600"
+                title={showPassword ? "隱藏密碼" : "顯示密碼"}
+              />
+            </div>
           </div>
           {errors.password && (
             <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>

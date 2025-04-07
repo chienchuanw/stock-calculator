@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import { AuthProvider } from "@/providers/AuthProvider";
+import { ReduxProvider } from "@/providers/ReduxProvider";
 
 // Font Awesome 配置
 import "@fortawesome/fontawesome-svg-core/styles.css";
@@ -37,10 +37,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
+        <ReduxProvider>
           <Navbar />
           <main className="max-w-full">{children}</main>
-        </AuthProvider>
+        </ReduxProvider>
       </body>
     </html>
   );

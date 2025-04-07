@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faLock } from "@fortawesome/free-solid-svg-icons";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { loginUser, clearError } from "@/redux/authSlice";
 
 type LoginFormData = {
   email: string;
@@ -12,9 +14,9 @@ type LoginFormData = {
 };
 
 export default function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
   
   const {
     register,
@@ -22,34 +24,18 @@ export default function LoginForm() {
     formState: { errors },
   } = useForm<LoginFormData>();
   
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    setError("");
+  useEffect(() => {
+    // 清除先前的错误
+    dispatch(clearError());
     
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || "登入失敗");
-      }
-      
-      // 登入成功，重新整理頁面以套用新的身分驗證狀態
-      router.refresh();
-      // 重定向到首頁
+    // 如果已登入，重定向到首頁
+    if (isAuthenticated) {
       router.push("/");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "登入過程中發生錯誤");
-    } finally {
-      setIsLoading(false);
     }
+  }, [dispatch, isAuthenticated, router]);
+  
+  const onSubmit = async (data: LoginFormData) => {
+    await dispatch(loginUser(data));
   };
   
   return (
@@ -85,7 +71,7 @@ export default function LoginForm() {
                 errors.email ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
               placeholder="your@email.com"
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
           {errors.email && (
@@ -115,7 +101,7 @@ export default function LoginForm() {
                 errors.password ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
               placeholder="••••••••"
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
           {errors.password && (
@@ -126,9 +112,9 @@ export default function LoginForm() {
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isLoading}
+          disabled={loading}
         >
-          {isLoading ? "登入中..." : "登入"}
+          {loading ? "登入中..." : "登入"}
         </button>
       </form>
     </div>

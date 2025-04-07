@@ -1,18 +1,22 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChartLine, faStar, faHome, faWallet, faUser, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { logoutUser } from "@/redux/authSlice";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, isAuthenticated, logout } = useAuth();
+  const router = useRouter();
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   
   const handleLogout = async () => {
-    await logout();
+    await dispatch(logoutUser());
+    router.push("/");
   };
   
   return (

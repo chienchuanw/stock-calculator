@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { registerUser, clearError } from "@/redux/authSlice";
 
 type RegisterFormData = {
   username: string;
@@ -14,9 +16,9 @@ type RegisterFormData = {
 };
 
 export default function RegisterForm() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
   
   const {
     register,
@@ -28,38 +30,19 @@ export default function RegisterForm() {
   // 用於確認密碼的比對
   const password = watch("password");
   
-  const onSubmit = async (data: RegisterFormData) => {
-    setIsLoading(true);
-    setError("");
+  useEffect(() => {
+    // 清除先前的錯誤
+    dispatch(clearError());
     
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: data.username,
-          email: data.email,
-          password: data.password,
-        }),
-      });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || "註冊失敗");
-      }
-      
-      // 註冊成功，重新整理頁面以套用新的身分驗證狀態
-      router.refresh();
-      // 重定向到首頁
+    // 如果已登入，重定向到首頁
+    if (isAuthenticated) {
       router.push("/");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "註冊過程中發生錯誤");
-    } finally {
-      setIsLoading(false);
     }
+  }, [dispatch, isAuthenticated, router]);
+  
+  const onSubmit = async (data: RegisterFormData) => {
+    const { username, email, password } = data;
+    await dispatch(registerUser({ username, email, password }));
   };
   
   return (
@@ -95,7 +78,7 @@ export default function RegisterForm() {
                 errors.username ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
               placeholder="your_username"
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
           {errors.username && (
@@ -125,7 +108,7 @@ export default function RegisterForm() {
                 errors.email ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
               placeholder="your@email.com"
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
           {errors.email && (
@@ -155,7 +138,7 @@ export default function RegisterForm() {
                 errors.password ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
               placeholder="••••••••"
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
           {errors.password && (
@@ -182,7 +165,7 @@ export default function RegisterForm() {
                 errors.confirmPassword ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
               placeholder="••••••••"
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
           {errors.confirmPassword && (
@@ -193,9 +176,9 @@ export default function RegisterForm() {
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isLoading}
+          disabled={loading}
         >
-          {isLoading ? "註冊中..." : "註冊"}
+          {loading ? "註冊中..." : "註冊"}
         </button>
       </form>
     </div>

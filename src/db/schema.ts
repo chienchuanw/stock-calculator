@@ -1,9 +1,16 @@
-import { pgTable, serial, varchar, integer, date, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  varchar,
+  integer,
+  date,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const dividends = pgTable("dividends", {
   id: serial("id").primaryKey(),
   stockSymbol: varchar("stock_symbol", { length: 10 }).notNull(),
-  year: integer("year").notNull(),
+  year: integer("year"),
   exDividendDate: date("ex_dividend_date"),
   cashDividend: varchar("cash_dividend", { length: 20 }),
   stockDividend: varchar("stock_dividend", { length: 20 }),

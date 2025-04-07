@@ -49,8 +49,6 @@ async function fetchAndInsertDividends(stockId: string) {
       },
     });
 
-    console.log(res);
-
     const rows: FinMindDividendRow[] = res.data.data;
 
     // 若是 CLI 指定個股，先刪除該股票舊資料
@@ -64,22 +62,31 @@ async function fetchAndInsertDividends(stockId: string) {
         .insert(dividends)
         .values({
           stockSymbol: row.stock_id,
-          year: Number(row.year),
-          exDividendDate: row.CashExDividendTradingDate || null,
-          cashDividend: row.CashEarningsDistribution?.toString() || null,
-          stockDividend: row.StockEarningsDistribution?.toString() || null,
-          totalDividend: (
-            (row.CashEarningsDistribution ?? 0) +
-              (row.StockEarningsDistribution ?? 0) || null
-          )?.toString(),
+          year:
+            typeof row.year === "string"
+              ? parseInt(row.year.replace(/[^\d]/g, ""), 10) || null
+              : typeof row.year === "number"
+              ? row.year
+              : null,
+          exDividendDate: row.ex_dividend_trading_date || null,
+          cashDividend: row.cash_dividend?.toString() || null,
+          stockDividend: row.stock_dividend?.toString() || null,
+          totalDividend: String(
+            (row.cash_dividend ?? 0) + (row.stock_dividend ?? 0)
+          ),
           issuedDate: row.date || null,
         })
         .onConflictDoNothing();
     }
 
     console.log(`✅ 寫入完成：${stockId}，共 ${rows.length} 筆`);
-  } catch (err) {
-    console.error(`❌ ${stockId} 抓取失敗`, err);
+  } catch (err: any) {
+    if (axios.isAxiosError(err) && err.response?.status === 402) {
+      console.error(`❌ ${stockId} 抓取失敗：已達 FinMind API 限額 (402)`);
+      process.exit(1); // 🛑 直接終止程式
+    } else {
+      console.error(`❌ ${stockId} 抓取失敗`, err);
+    }
   }
 }
 

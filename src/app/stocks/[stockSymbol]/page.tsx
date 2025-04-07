@@ -7,6 +7,7 @@ import {
   faChevronLeft,
   faChevronUp,
   faChevronDown,
+  faStar,
 } from "@fortawesome/free-solid-svg-icons";
 
 interface Stock {
@@ -39,8 +40,26 @@ export default function StockDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [dividendsError, setDividendsError] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc"); // 默認降序（新到舊）
+  const [isInWatchlist, setIsInWatchlist] = useState<boolean>(false);
+  const [watchlistLoading, setWatchlistLoading] = useState<boolean>(false);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | '' }>({ message: '', type: '' });
 
   const stockSymbol = params.stockSymbol as string;
+
+  // 檢查股票是否在觀測名單中
+  useEffect(() => {
+    if (!stockSymbol) return;
+    
+    fetch('/api/watchlist')
+      .then(res => res.json())
+      .then(data => {
+        const isInList = data.some((item: any) => item.stockSymbol === stockSymbol);
+        setIsInWatchlist(isInList);
+      })
+      .catch(error => {
+        console.error('獲取觀測名單時發生錯誤:', error);
+      });
+  }, [stockSymbol]);
 
   useEffect(() => {
     if (!stockSymbol) return;
@@ -131,10 +150,89 @@ export default function StockDetailPage() {
   const handleBack = () => {
     router.push("/stocks");
   };
+  
+  // 添加或移除股票到觀測名單
+  const toggleWatchlist = async () => {
+    if (!stockSymbol) return;
+    
+    setWatchlistLoading(true);
+    
+    try {
+      if (isInWatchlist) {
+        // 從觀測名單中移除
+        const response = await fetch('/api/watchlist', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ stockSymbol }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          setIsInWatchlist(false);
+          setNotification({
+            message: data.message || '已從觀測名單移除',
+            type: 'success'
+          });
+        } else {
+          setNotification({
+            message: data.message || '移除失敗',
+            type: 'error'
+          });
+        }
+      } else {
+        // 添加到觀測名單
+        const response = await fetch('/api/watchlist', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ stockSymbol }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          setIsInWatchlist(true);
+          setNotification({
+            message: data.message || '已新增到觀測名單',
+            type: 'success'
+          });
+        } else {
+          setNotification({
+            message: data.message || '新增失敗',
+            type: 'error'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('處理觀測名單操作時發生錯誤:', error);
+      setNotification({
+        message: '處理觀測名單操作時發生錯誤',
+        type: 'error'
+      });
+    } finally {
+      setWatchlistLoading(false);
+      setTimeout(() => setNotification({ message: '', type: '' }), 3000);
+    }
+  };
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="px-8 py-6">
+      <div className="px-8 py-6 relative">
+        {/* 通知元件 */}
+        {notification.message && (
+          <div className={`fixed top-6 right-6 z-50 p-4 rounded-md shadow-md animate-fade-in-out ${notification.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-medium ${notification.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+                {notification.message}
+              </span>
+            </div>
+          </div>
+        )}
+        
         <button
           onClick={handleBack}
           className="mb-6 flex items-center text-blue-500 hover:text-blue-600 hover:cursor-pointer"
@@ -157,9 +255,23 @@ export default function StockDetailPage() {
         ) : stock ? (
           <div>
             <div className="bg-white shadow-sm rounded-md overflow-hidden border border-gray-100 p-6 mb-6">
-              <h1 className="text-2xl font-bold text-gray-800 mb-4">
-                {stock.stockName} ({stock.stockSymbol})
-              </h1>
+              <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-bold text-gray-800">
+                  {stock.stockName} ({stock.stockSymbol})
+                </h1>
+                <button 
+                  className={`p-2 rounded-full transition-colors ${isInWatchlist ? 'text-yellow-400 hover:text-yellow-500' : 'text-gray-400 hover:text-yellow-400'}`}
+                  onClick={toggleWatchlist}
+                  disabled={watchlistLoading}
+                  title={isInWatchlist ? '從觀測名單移除' : '加入觀測名單'}
+                >
+                  {watchlistLoading ? (
+                    <div className="w-5 h-5 border-t-2 border-yellow-500 border-solid rounded-full animate-spin"></div>
+                  ) : (
+                    <FontAwesomeIcon icon={faStar} size="lg" />
+                  )}
+                </button>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="border-b border-gray-100 py-3">
                   <div className="text-sm text-gray-500">股票代號</div>

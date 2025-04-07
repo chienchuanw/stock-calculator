@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [isAuthenticated, loading, router]);
 
-  // 如果正在載入或未驗證，顯示載入中訊息
+  // 如果正在載入，顯示載入中訊息
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -35,28 +35,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // 如果未登入，顯示未授權訊息
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-          <h2 className="text-2xl font-bold text-center mb-4 text-red-600">需要登入</h2>
-          <p className="text-gray-600 text-center mb-6">
-            您需要登入才能訪問此頁面。請先登入或註冊新帳戶。
-          </p>
-          <div className="flex justify-center">
-            <button
-              onClick={() => router.push('/#login')}
-              className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              前往登入
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 如果已登入，顯示受保護的內容
-  return <>{children}</>;
+  // 已登入則顯示内容，未登入時暂時顯示空白，等待重定向生效
+  return isAuthenticated ? <>{children}</> : null;
 }

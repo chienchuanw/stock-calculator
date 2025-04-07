@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 export async function POST() {
   try {
     // 刪除認證 Cookie
-    cookies().delete("auth-token");
+    const cookieStore = await cookies();
+    cookieStore.delete("auth-token");
     
     return NextResponse.json({ message: "已成功登出" });
   } catch (error) {

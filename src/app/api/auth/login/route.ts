@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { db } from "@/db";
+import { db } from "@/db/queries";
 import { users } from "@/db/schema";
 import { generateToken, setTokenCookie } from "@/lib/auth/utils";
 import { eq } from "drizzle-orm";
@@ -17,9 +17,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 查找用戶
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, email),
-    });
+    const userResults = await db.select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    const user = userResults[0];
 
     if (!user) {
       return NextResponse.json({ error: "無效的認證資訊" }, { status: 401 });
@@ -35,7 +38,7 @@ export async function POST(request: NextRequest) {
     const token = await generateToken(user.id);
     
     // 設置 Cookie
-    setTokenCookie(token);
+    await setTokenCookie(token);
 
     // 返回用戶數據（不包含密碼）
     const { passwordHash, ...userWithoutPassword } = user;

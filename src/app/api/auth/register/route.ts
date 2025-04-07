@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { db } from "@/db";
+import { db } from "@/db/queries";
 import { users } from "@/db/schema";
 import { generateToken, setTokenCookie } from "@/lib/auth/utils";
+import { eq, or } from "drizzle-orm";
 
 // 註冊 API
 export async function POST(request: NextRequest) {
@@ -22,11 +23,17 @@ export async function POST(request: NextRequest) {
     }
 
     // 檢查用戶名和電子郵件是否已存在
-    const existingUser = await db.query.users.findFirst({
-      where: (user, { or, eq }) => or(eq(user.username, username), eq(user.email, email)),
-    });
+    const existingUser = await db.select()
+      .from(users)
+      .where(
+        or(
+          eq(users.username, username),
+          eq(users.email, email)
+        )
+      )
+      .limit(1);
 
-    if (existingUser) {
+    if (existingUser.length > 0) {
       return NextResponse.json({ error: "用戶名或電子郵件已被使用" }, { status: 409 });
     }
 
@@ -35,17 +42,19 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // 創建用戶
-    const [newUser] = await db.insert(users).values({
+    const insertResult = await db.insert(users).values({
       username,
       email,
       passwordHash: hashedPassword,
     }).returning({ id: users.id });
+    
+    const newUser = insertResult[0];
 
     // 生成 JWT 令牌
     const token = await generateToken(newUser.id);
     
     // 設置 Cookie
-    setTokenCookie(token);
+    await setTokenCookie(token);
 
     return NextResponse.json({
       message: "註冊成功",

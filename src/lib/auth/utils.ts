@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { db } from "@/db/queries";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -28,8 +28,9 @@ export async function verifyToken(token: string) {
 }
 
 // 設置 Cookie
-export function setTokenCookie(token: string) {
-  cookies().set({
+export async function setTokenCookie(token: string) {
+  const cookieStore = await cookies();
+  cookieStore.set({
     name: "auth-token",
     value: token,
     httpOnly: true,
@@ -41,7 +42,8 @@ export function setTokenCookie(token: string) {
 
 // 取得當前用戶
 export async function getCurrentUser() {
-  const token = cookies().get("auth-token")?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth-token")?.value;
   
   if (!token) {
     return null;
@@ -52,9 +54,13 @@ export async function getCurrentUser() {
     return null;
   }
   
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, payload.userId as number),
-  });
+  // 查找用戶
+  const userResults = await db.select()
+    .from(users)
+    .where(eq(users.id, payload.userId as number))
+    .limit(1);
+
+  const user = userResults[0];
   
   if (!user) {
     return null;
@@ -66,8 +72,9 @@ export async function getCurrentUser() {
 }
 
 // 登出 - 刪除 Cookie
-export function logout() {
-  cookies().delete("auth-token");
+export async function logout() {
+  const cookieStore = await cookies();
+  cookieStore.delete("auth-token");
 }
 
 // Auth middleware
